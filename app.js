@@ -1,10 +1,10 @@
 const ALBUM_COVER = 'assets/images/Black and Red Retro Simple Nostalgic Album Cover.png';
-const ARTIST = 'ILAAMA';
+const LABEL = 'ILAAMA';
 
 const tracks = [
   {
     title: 'I mean hello Master 1',
-    artist: ARTIST,
+    artist: 'Spinny John Stanley',
     src: 'assets/audio/I mean hello Master 1.wav',
     cover: ALBUM_COVER,
     duration: '—',
@@ -27,6 +27,13 @@ const iconPause = playBtn.querySelector('.icon-pause');
 let currentIndex = -1;
 let isPlaying = false;
 
+function formatArtists(track) {
+  if (track.artist && track.artist !== LABEL) {
+    return `${track.artist} · ${LABEL}`;
+  }
+  return LABEL;
+}
+
 function formatDuration(seconds) {
   if (!seconds || isNaN(seconds)) return '—';
   const mins = Math.floor(seconds / 60);
@@ -34,10 +41,14 @@ function formatDuration(seconds) {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function setAlbumArt(container, coverUrl, alt) {
+function assetUrl(path) {
+  return new URL(path, window.location.href).href;
+}
+
+function setAlbumArt(container, coverPath, alt) {
   container.innerHTML = '';
   const img = document.createElement('img');
-  img.src = encodeURI(coverUrl);
+  img.src = assetUrl(coverPath);
   img.alt = alt;
   container.appendChild(img);
 }
@@ -47,9 +58,9 @@ function updateUI() {
 
   if (track) {
     trackTitle.textContent = track.title;
-    trackArtist.textContent = track.artist;
+    trackArtist.textContent = formatArtists(track);
     miniTitle.textContent = track.title;
-    miniArtist.textContent = track.artist;
+    miniArtist.textContent = formatArtists(track);
     setAlbumArt(albumArt, track.cover, `${track.title} cover`);
     setAlbumArt(miniArt, track.cover, `${track.title} cover`);
     playBtn.disabled = false;
@@ -85,25 +96,56 @@ function updatePlayButton() {
   playBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
 }
 
+function playAudio() {
+  const playPromise = audio.play();
+  if (playPromise) {
+    playPromise.catch(() => {
+      isPlaying = false;
+      updatePlayButton();
+    });
+  }
+}
+
 function loadTrack(index) {
   currentIndex = index;
   const track = tracks[index];
-  audio.src = encodeURI(track.src);
+  audio.pause();
+  audio.src = assetUrl(track.src);
+  audio.load();
   updateUI();
 }
 
 function playTrack(index) {
   if (index === currentIndex && audio.src) {
-    audio.play();
-    isPlaying = true;
-    updatePlayButton();
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      playAudio();
+    }
     return;
   }
 
   loadTrack(index);
-  audio.play();
-  isPlaying = true;
-  updateUI();
+
+  const onReady = () => {
+    audio.removeEventListener('canplay', onReady);
+    audio.removeEventListener('error', onError);
+    playAudio();
+  };
+
+  const onError = () => {
+    audio.removeEventListener('canplay', onReady);
+    audio.removeEventListener('error', onError);
+    isPlaying = false;
+    updatePlayButton();
+  };
+
+  if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    playAudio();
+  } else {
+    audio.addEventListener('canplay', onReady);
+    audio.addEventListener('error', onError);
+  }
 }
 
 function togglePlayPause() {
@@ -111,13 +153,9 @@ function togglePlayPause() {
 
   if (isPlaying) {
     audio.pause();
-    isPlaying = false;
   } else {
-    audio.play();
-    isPlaying = true;
+    playAudio();
   }
-
-  updatePlayButton();
 }
 
 function buildPlaylist() {
@@ -142,7 +180,7 @@ function buildPlaylist() {
         </svg>
       </div>
       <span class="item-title">${track.title}</span>
-      <span class="item-artist">${track.artist}</span>
+      <span class="item-artist">${formatArtists(track)}</span>
       <span class="item-duration" data-index="${index}">${track.duration}</span>
     `;
 
