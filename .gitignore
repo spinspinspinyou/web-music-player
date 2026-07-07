@@ -3,3 +3,6 @@ node_modules/
 mobile-preview.png
 package-lock.json
 package.json
+assets/audio/*.wav
+assets/audio/*.flac
+assets/audio/*.mp3

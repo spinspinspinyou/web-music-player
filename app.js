@@ -3,9 +3,9 @@ const LABEL = 'ILAAMA';
 
 const tracks = [
   {
+    id: 'i-mean-hello',
     title: 'I mean Hello',
     artist: 'ILAAMA x GOODNIXX',
-    src: 'assets/audio/I mean hello.wav',
     cover: ALBUM_COVER,
     duration: '—',
   },
@@ -26,6 +26,17 @@ const iconPause = playBtn.querySelector('.icon-pause');
 
 let currentIndex = -1;
 let isPlaying = false;
+let isLoadingTrack = false;
+const signedUrlCache = new Map();
+
+function isSupabaseConfigured() {
+  return (
+    window.SUPABASE_URL &&
+    window.SUPABASE_ANON_KEY &&
+    !window.SUPABASE_URL.includes('YOUR_PROJECT_REF') &&
+    !window.SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')
+  );
+}
 
 function formatArtists(track) {
   if (track.artist && track.artist !== LABEL) {
@@ -56,17 +67,60 @@ function setAlbumArt(container, coverPath, alt) {
   container.appendChild(img);
 }
 
+function showStreamError(message) {
+  trackArtist.textContent = message;
+  miniArtist.textContent = message;
+}
+
+async function fetchSignedUrl(trackId) {
+  const cached = signedUrlCache.get(trackId);
+  if (cached && cached.expiresAt > Date.now() + 60_000) {
+    return cached.url;
+  }
+
+  if (!isSupabaseConfigured()) {
+    throw new Error('Streaming not configured — add supabase-config.js');
+  }
+
+  const response = await fetch(`${window.SUPABASE_URL}/functions/v1/get-track-url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ trackId }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Unable to load track');
+  }
+
+  const data = await response.json();
+  if (!data.url) {
+    throw new Error('Invalid stream response');
+  }
+
+  signedUrlCache.set(trackId, {
+    url: data.url,
+    expiresAt: Date.now() + (data.expiresIn ?? 3600) * 1000,
+  });
+
+  return data.url;
+}
+
 function updateUI() {
   const track = currentIndex >= 0 ? tracks[currentIndex] : null;
 
   if (track) {
     trackTitle.textContent = track.title;
-    trackArtist.textContent = formatArtists(track);
+    if (!isLoadingTrack) {
+      trackArtist.textContent = formatArtists(track);
+      miniArtist.textContent = formatArtists(track);
+    }
     miniTitle.textContent = track.title;
-    miniArtist.textContent = formatArtists(track);
     setAlbumArt(albumArt, track.cover, `${track.title} cover`);
     setAlbumArt(miniArt, track.cover, `${track.title} cover`);
-    playBtn.disabled = false;
+    playBtn.disabled = isLoadingTrack;
   } else {
     trackTitle.textContent = 'Select a track';
     trackArtist.textContent = '—';
@@ -87,6 +141,7 @@ function updateUI() {
 
   document.querySelectorAll('.playlist-item').forEach((item, i) => {
     item.classList.toggle('active', i === currentIndex);
+    item.classList.toggle('loading', i === currentIndex && isLoadingTrack);
   });
 
   updatePlayButton();
@@ -109,17 +164,54 @@ function playAudio() {
   }
 }
 
-function loadTrack(index) {
+function waitForAudioReady() {
+  return new Promise((resolve, reject) => {
+    const onReady = () => {
+      cleanup();
+      resolve();
+    };
+    const onError = () => {
+      cleanup();
+      reject(new Error('Playback failed'));
+    };
+    const cleanup = () => {
+      audio.removeEventListener('canplay', onReady);
+      audio.removeEventListener('error', onError);
+    };
+
+    if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      resolve();
+      return;
+    }
+
+    audio.addEventListener('canplay', onReady);
+    audio.addEventListener('error', onError);
+  });
+}
+
+async function loadTrack(index) {
   currentIndex = index;
   const track = tracks[index];
   audio.pause();
-  audio.src = assetUrl(track.src);
-  audio.load();
+  isLoadingTrack = true;
   updateUI();
+
+  try {
+    const streamUrl = await fetchSignedUrl(track.id);
+    audio.src = streamUrl;
+    audio.load();
+    isLoadingTrack = false;
+    updateUI();
+  } catch {
+    isLoadingTrack = false;
+    showStreamError('Stream unavailable');
+    updateUI();
+    throw new Error('Stream unavailable');
+  }
 }
 
-function playTrack(index) {
-  if (index === currentIndex && audio.src) {
+async function playTrack(index) {
+  if (index === currentIndex && audio.src && !isLoadingTrack) {
     if (isPlaying) {
       audio.pause();
     } else {
@@ -128,31 +220,18 @@ function playTrack(index) {
     return;
   }
 
-  loadTrack(index);
-
-  const onReady = () => {
-    audio.removeEventListener('canplay', onReady);
-    audio.removeEventListener('error', onError);
+  try {
+    await loadTrack(index);
+    await waitForAudioReady();
     playAudio();
-  };
-
-  const onError = () => {
-    audio.removeEventListener('canplay', onReady);
-    audio.removeEventListener('error', onError);
+  } catch {
     isPlaying = false;
     updatePlayButton();
-  };
-
-  if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-    playAudio();
-  } else {
-    audio.addEventListener('canplay', onReady);
-    audio.addEventListener('error', onError);
   }
 }
 
 function togglePlayPause() {
-  if (currentIndex < 0) return;
+  if (currentIndex < 0 || isLoadingTrack) return;
 
   if (isPlaying) {
     audio.pause();
@@ -225,3 +304,7 @@ playBtn.addEventListener('click', togglePlayPause);
 buildPlaylist();
 updateDurationsFromMetadata();
 updateUI();
+
+if (!isSupabaseConfigured()) {
+  showStreamError('Add supabase-config.js to enable streaming');
+}

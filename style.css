@@ -352,6 +352,11 @@ body::before {
   display: block;
 }
 
+.playlist-item.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
 .item-title {
   font-size: 1.05rem;
   font-weight: 600;
