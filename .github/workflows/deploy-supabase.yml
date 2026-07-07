@@ -1,0 +1,41 @@
+name: Deploy Supabase streaming
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - 'assets/audio/**'
+      - '.github/workflows/deploy-supabase.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: nlaxpnbbtczqpaxcgvea
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref "$PROJECT_REF"
+
+      - name: Create storage bucket
+        run: supabase db execute --file supabase/schema.sql --linked
+
+      - name: Upload audio (if present in repo)
+        if: hashFiles('assets/audio/I mean hello.wav') != ''
+        run: supabase storage cp "assets/audio/I mean hello.wav" "ss:///ilaama-tracks/I mean hello.wav" --linked --experimental
+
+      - name: Deploy get-track-url function
+        run: supabase functions deploy get-track-url --project-ref "$PROJECT_REF" --use-api
+
+      - name: Set allowed origins
+        run: supabase secrets set ALLOWED_ORIGINS="https://spinspinspinyou.github.io" --project-ref "$PROJECT_REF"
