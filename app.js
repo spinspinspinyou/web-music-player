@@ -10,6 +10,14 @@ const tracks = [
     cover: ALBUM_COVER,
     duration: '—',
   },
+  {
+    id: 'gori-guppa',
+    title: 'Gori Guppa',
+    artist: 'ILAAMA written by Rawthor',
+    fallbackSrc: 'assets/audio/Gori Guppa.wav',
+    cover: ALBUM_COVER,
+    duration: '—',
+  },
 ];
 
 const audio = document.getElementById('audio');
@@ -302,6 +310,10 @@ function updateDurationsFromMetadata() {
 }
 
 audio.addEventListener('ended', () => {
+  if (currentIndex >= 0 && currentIndex < tracks.length - 1) {
+    playTrack(currentIndex + 1);
+    return;
+  }
   isPlaying = false;
   updatePlayButton();
 });

@@ -6,6 +6,7 @@ const URL_TTL_SECONDS = 3600; // 1 hour
 // Allowlist: trackId → storage object path (never exposed to the client)
 const TRACKS: Record<string, string> = {
   'i-mean-hello': 'I mean hello.wav',
+  'gori-guppa': 'Gori Guppa.wav',
 };
 
 const corsHeaders = {
