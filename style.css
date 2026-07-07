@@ -522,8 +522,8 @@ body::before {
   }
 
   .app {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
     height: auto;
   }
@@ -532,7 +532,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    grid-row: 1;
+    flex-shrink: 0;
     padding: 14px 20px;
     padding-top: max(14px, env(safe-area-inset-top));
     background: linear-gradient(
@@ -568,7 +568,7 @@ body::before {
   }
 
   .main-content {
-    grid-row: 2;
+    flex: 1;
     padding: 20px 16px;
     padding-bottom: calc(var(--player-bar-height) + 24px);
     overflow: visible;
@@ -659,12 +659,12 @@ body::before {
   }
 
   .player-bar {
-    grid-column: 1;
-    grid-row: 3;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
+    grid-column: unset;
+    grid-row: unset;
     grid-template-columns: 1fr auto;
     gap: 12px;
     padding: 12px 16px;
