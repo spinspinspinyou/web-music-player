@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Player</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+        <span>Music Player</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#" class="nav-item active">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          Your Library
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="main-header">
+        <h1>Your Playlist</h1>
+        <p class="subtitle">6 tracks · Select a song to play</p>
+      </header>
+
+      <section class="now-playing">
+        <div class="album-art" id="albumArt">
+          <div class="album-art-placeholder">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor" opacity="0.4">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="track-info">
+          <span class="now-playing-label">Now Playing</span>
+          <h2 class="track-title" id="trackTitle">Select a track</h2>
+          <p class="track-artist" id="trackArtist">—</p>
+        </div>
+      </section>
+
+      <ul class="playlist" id="playlist"></ul>
+    </main>
+
+    <footer class="player-bar">
+      <div class="player-bar-left">
+        <div class="mini-art" id="miniArt">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" opacity="0.5">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+        </div>
+        <div class="mini-info">
+          <span class="mini-title" id="miniTitle">No track selected</span>
+          <span class="mini-artist" id="miniArtist">—</span>
+        </div>
+      </div>
+
+      <div class="player-bar-center">
+        <button class="play-btn" id="playBtn" aria-label="Play">
+          <svg class="icon-play" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" hidden>
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="player-bar-right"></div>
+    </footer>
+  </div>
+
+  <audio id="audio" preload="metadata"></audio>
+  <script src="app.js"></script>
+</body>
+</html>
