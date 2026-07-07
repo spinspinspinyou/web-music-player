@@ -1,45 +1,13 @@
+const ALBUM_COVER = 'assets/images/Black and Red Retro Simple Nostalgic Album Cover.png';
+const ARTIST = 'ILAAMA';
+
 const tracks = [
   {
-    title: 'Midnight Drive',
-    artist: 'Neon Waves',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    cover: 'https://picsum.photos/seed/midnight/400/400',
-    duration: '6:12',
-  },
-  {
-    title: 'Electric Dreams',
-    artist: 'Synth Collective',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-    cover: 'https://picsum.photos/seed/electric/400/400',
-    duration: '5:48',
-  },
-  {
-    title: 'Golden Hour',
-    artist: 'Luna Rivers',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-    cover: 'https://picsum.photos/seed/golden/400/400',
-    duration: '7:03',
-  },
-  {
-    title: 'Urban Pulse',
-    artist: 'Metro Beats',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-    cover: 'https://picsum.photos/seed/urban/400/400',
-    duration: '4:55',
-  },
-  {
-    title: 'Starlight',
-    artist: 'Cosmic Echo',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-    cover: 'https://picsum.photos/seed/starlight/400/400',
-    duration: '6:30',
-  },
-  {
-    title: 'Velvet Sky',
-    artist: 'Aurora Lane',
-    src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-    cover: 'https://picsum.photos/seed/velvet/400/400',
-    duration: '5:17',
+    title: 'I mean hello Master 1',
+    artist: ARTIST,
+    src: 'assets/audio/I mean hello Master 1.wav',
+    cover: ALBUM_COVER,
+    duration: '—',
   },
 ];
 
@@ -69,7 +37,7 @@ function formatDuration(seconds) {
 function setAlbumArt(container, coverUrl, alt) {
   container.innerHTML = '';
   const img = document.createElement('img');
-  img.src = coverUrl;
+  img.src = encodeURI(coverUrl);
   img.alt = alt;
   container.appendChild(img);
 }
@@ -120,7 +88,7 @@ function updatePlayButton() {
 function loadTrack(index) {
   currentIndex = index;
   const track = tracks[index];
-  audio.src = track.src;
+  audio.src = encodeURI(track.src);
   updateUI();
 }
 
