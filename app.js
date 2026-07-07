@@ -6,6 +6,7 @@ const tracks = [
     id: 'i-mean-hello',
     title: 'I mean Hello',
     artist: 'ILAAMA x GOODNIXX',
+    fallbackSrc: 'assets/audio/I mean hello.wav',
     cover: ALBUM_COVER,
     duration: '—',
   },
@@ -190,6 +191,22 @@ function waitForAudioReady() {
   });
 }
 
+async function resolveTrackUrl(track) {
+  if (isSupabaseConfigured()) {
+    try {
+      return await fetchSignedUrl(track.id);
+    } catch {
+      // Supabase not ready yet — use local fallback
+    }
+  }
+
+  if (track.fallbackSrc) {
+    return assetUrl(track.fallbackSrc);
+  }
+
+  throw new Error('Stream unavailable');
+}
+
 async function loadTrack(index) {
   currentIndex = index;
   const track = tracks[index];
@@ -198,8 +215,7 @@ async function loadTrack(index) {
   updateUI();
 
   try {
-    const streamUrl = await fetchSignedUrl(track.id);
-    audio.src = streamUrl;
+    audio.src = await resolveTrackUrl(track);
     audio.load();
     isLoadingTrack = false;
     updateUI();
@@ -305,7 +321,3 @@ playBtn.addEventListener('click', togglePlayPause);
 buildPlaylist();
 updateDurationsFromMetadata();
 updateUI();
-
-if (!isSupabaseConfigured()) {
-  showStreamError('Add supabase-config.js to enable streaming');
-}
