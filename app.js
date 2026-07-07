@@ -86,6 +86,7 @@ async function fetchSignedUrl(trackId) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      apikey: window.SUPABASE_ANON_KEY,
       Authorization: `Bearer ${window.SUPABASE_ANON_KEY}`,
     },
     body: JSON.stringify({ trackId }),
