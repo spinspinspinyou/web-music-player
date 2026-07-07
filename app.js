@@ -3,9 +3,9 @@ const LABEL = 'ILAAMA';
 
 const tracks = [
   {
-    title: 'I mean hello Master 1',
-    artist: 'Spinny John Stanley',
-    src: 'assets/audio/I mean hello Master 1.wav',
+    title: 'I mean Hello',
+    artist: 'ILAAMA x GOODNIXX',
+    src: 'assets/audio/I mean hello.wav',
     cover: ALBUM_COVER,
     duration: '—',
   },
@@ -29,6 +29,9 @@ let isPlaying = false;
 
 function formatArtists(track) {
   if (track.artist && track.artist !== LABEL) {
+    if (track.artist.includes(LABEL)) {
+      return track.artist;
+    }
     return `${track.artist} · ${LABEL}`;
   }
   return LABEL;
